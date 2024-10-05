@@ -13,26 +13,36 @@ void    create_fork(t_info *info)
         info->fork[i].id = i + 1;
         i++;
     }
-
 }
+
 int elapsed_time(struct timeval *current_time, struct timeval *last_time_eat)
 {
     int elapsed_time;
     gettimeofday(current_time, NULL);
+    // printf(" current time is : in sec %ld and in usec %ld \n", current_time->tv_sec, current_time->tv_usec);
+    // printf(" last time eat is : in sec %ld and in usec %ld \n", last_time_eat->tv_sec, last_time_eat->tv_usec);
     elapsed_time = ((current_time->tv_sec - last_time_eat->tv_sec)*1000 + (current_time->tv_usec -last_time_eat->tv_usec)/1000);
     return (elapsed_time);
 }
+
 void *routine_monitor(void *str)
 {
     t_info *info = (t_info *)str;
-    (void)info;
-    // while(1)
-    // {
-    //     int i = 0;
-    //     gettimeofday(info->params->current_time, NULL);
-
-    // }
-
+    while(1)
+    {
+        int i = 0;
+        while(i < info->params->nb_philo)
+        {
+            int t = elapsed_time(info->philo[i].current_time, info->philo[i].last_time_eat);
+            if (t > info->params->time_to_die)
+            {
+                printf("\n %d \n", t);
+                printf(" philo %d is dead\n", info->philo[i].id);
+                exit(1);
+            }
+            i++;
+        }
+    }
     return (NULL);
 }
 
@@ -57,22 +67,23 @@ void *routine( void *arg)
     }
     else 
     {
-        printf("%d philo %d is sleeping\n", philo->id, elapsed_time(philo->params->current_time, philo->params->start_time));
+        printf("%d philo %d is sleeping\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
         usleep(philo->params->time_to_sleep * 1000);
-        printf("%d philo %d is thinking\n", philo->id, elapsed_time(philo->params->current_time, philo->params->start_time));
+        printf("%d philo %d is thinking\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
         pthread_mutex_lock(philo->right_fork);
-        printf("%d philo %d has taken a fork (right_fork)\n", philo->id, elapsed_time(philo->params->current_time, philo->params->start_time));
+        printf("%d philo %d has taken a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
         pthread_mutex_lock(philo->left_fork);
-        printf("%d philo %d has taken a fork (left_fork)\n", philo->id, elapsed_time(philo->params->current_time, philo->params->start_time));
+        printf("%d philo %d has taken a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
         gettimeofday(philo->last_time_eat, NULL);
         usleep(philo->params->time_to_eat * 1000);
         pthread_mutex_unlock(philo->right_fork);
-        printf("%d philo %d put down a fork (right_fork)\n", philo->id, elapsed_time(philo->params->current_time, philo->params->start_time));
+        printf("%d philo %d put down a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
         pthread_mutex_unlock(philo->left_fork);
-        printf("%d philo %d put down a fork (left_fork)\n", philo->id, elapsed_time(philo->params->current_time, philo->params->start_time));
+        printf("%d philo %d put down a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
     }
     return (NULL);
 }
+
 void create_philo(t_info *info)
 {
     int i;
@@ -80,6 +91,9 @@ void create_philo(t_info *info)
     while(i< info->params->nb_philo)
     {
         info->philo[i].thread = (pthread_t *)malloc(sizeof(pthread_t));
+        info->philo[i].last_time_eat = (struct timeval *)malloc(sizeof(struct timeval));
+        gettimeofday(info->philo[i].last_time_eat, NULL);
+        info->philo[i].current_time = (struct timeval *)malloc(sizeof(struct timeval));
         if (!info->philo[i].thread)
             exit(1); // need free function;
         info->philo[i].params = info->params;
@@ -134,6 +148,7 @@ void init_info(t_info *info, int argc , char **argv)
         exit(1);  // need free function
     info ->fork = (t_fork *)malloc(sizeof(t_fork)*info->params->nb_philo);
     info->params->start_time = (struct timeval *)malloc(sizeof(struct timeval ));
+    gettimeofday(info->params->start_time, NULL);
     info->params->current_time = (struct timeval *)malloc(sizeof(struct timeval ));
     info->monitor = (pthread_t *)malloc(sizeof(pthread_t));
     create_fork(info);

@@ -26,6 +26,7 @@ typedef struct s_philo
     pthread_t *thread;
     pthread_mutex_t *left_fork;
     pthread_mutex_t *right_fork;
+    struct timeval  *current_time;
     t_params *params;
 }   t_philo;
 
