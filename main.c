@@ -25,12 +25,29 @@ int elapsed_time(struct timeval *current_time, struct timeval *last_time_eat)
     return (elapsed_time);
 }
 
+int check_times(t_info *info)
+{
+    int i = 0;
+    while(i < info->params->nb_philo)
+    {
+        if (info->params->nb_meals != -1 && info->params->nb_meals == info->philo->nb_times_eat)
+            i++;
+        else
+            return (0);
+    }
+    return (1);
+}
 void *routine_monitor(void *str)
 {
     t_info *info = (t_info *)str;
     while(1)
     {
         int i = 0;
+        if (check_times(info))
+        {
+            printf(" simulation stops\n");
+            exit(1);
+        }
         while(i < info->params->nb_philo)
         {
             int t = elapsed_time(info->philo[i].current_time, info->philo[i].last_time_eat);
@@ -49,37 +66,47 @@ void *routine_monitor(void *str)
 void *routine( void *arg)
 {   
     t_philo *philo = (t_philo *)arg;
-    if (!(philo->id % 2))
+        if (!(philo->id % 2))
+        usleep(10000);
+    while(1)
     {
-        pthread_mutex_lock(philo->left_fork);
-        printf("%d philo %d has taken  a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        pthread_mutex_lock(philo->right_fork);
-        printf("%d philo %d has taken a fork (right fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        gettimeofday(philo->last_time_eat, NULL);
-        usleep(philo->params->time_to_eat * 1000);
-        pthread_mutex_unlock(philo->left_fork);
-        printf("%d philo %d put down a fork (left fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        pthread_mutex_unlock(philo->right_fork);
-        printf("%d philo %d put down a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        printf("%d philo %d is sleeping\n",elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        usleep(philo->params->time_to_sleep * 1000);
-        printf("%d philo %d is thinking\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-    }
-    else 
-    {
-        printf("%d philo %d is sleeping\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        usleep(philo->params->time_to_sleep * 1000);
-        printf("%d philo %d is thinking\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        pthread_mutex_lock(philo->right_fork);
-        printf("%d philo %d has taken a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        pthread_mutex_lock(philo->left_fork);
-        printf("%d philo %d has taken a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        gettimeofday(philo->last_time_eat, NULL);
-        usleep(philo->params->time_to_eat * 1000);
-        pthread_mutex_unlock(philo->right_fork);
-        printf("%d philo %d put down a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
-        pthread_mutex_unlock(philo->left_fork);
-        printf("%d philo %d put down a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        // {
+            pthread_mutex_lock(philo->left_fork);
+            printf("%d philo %d has taken  a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+            pthread_mutex_lock(philo->right_fork);
+            printf("%d philo %d has taken a fork (right fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+            gettimeofday(philo->last_time_eat, NULL);
+            printf("%d philo %d is eating\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+            usleep(philo->params->time_to_eat * 1000);
+            if (philo->params->nb_meals != -1)
+                philo->nb_times_eat ++;
+            pthread_mutex_unlock(philo->left_fork);
+            printf("%d philo %d put down a fork (left fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+            pthread_mutex_unlock(philo->right_fork);
+            printf("%d philo %d put down a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+            printf("%d philo %d is sleeping\n",elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+            usleep(philo->params->time_to_sleep * 1000);
+            printf("%d philo %d is thinking\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        // }
+        // else 
+        // {
+        //     printf("%d philo %d is sleeping\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        //     usleep(philo->params->time_to_sleep * 1000);
+        //     printf("%d philo %d is thinking\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        //     pthread_mutex_lock(philo->right_fork);
+        //     printf("%d philo %d has taken a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        //     pthread_mutex_lock(philo->left_fork);
+        //     printf("%d philo %d has taken a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        //     gettimeofday(philo->last_time_eat, NULL);
+        //     printf("%d philo %d is eating\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        //     usleep(philo->params->time_to_eat * 1000);
+        //     if (philo->params->nb_meals != -1)
+        //         philo->nb_times_eat ++;
+        //     pthread_mutex_unlock(philo->right_fork);
+        //     printf("%d philo %d put down a fork (right_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        //     pthread_mutex_unlock(philo->left_fork);
+        //     printf("%d philo %d put down a fork (left_fork)\n", elapsed_time(philo->params->current_time, philo->params->start_time), philo->id);
+        // }
     }
     return (NULL);
 }
@@ -100,6 +127,7 @@ void create_philo(t_info *info)
         info->philo[i].id = i+1;
         info->philo[i].right_fork = info->fork[i].fork;
         info->philo[i].left_fork = info->fork[((i +1)%(info->params->nb_philo))].fork;
+        info->philo[i].nb_times_eat = 0;
         if(pthread_create(info->philo[i].thread, NULL, routine, &info->philo[i]))
         {
             printf("Error creating thread\n");

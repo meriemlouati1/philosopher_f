@@ -22,6 +22,7 @@ typedef struct s_params
 typedef struct s_philo
 {
     int id;
+    int nb_times_eat;
     struct timeval *last_time_eat;
     pthread_t *thread;
     pthread_mutex_t *left_fork;
